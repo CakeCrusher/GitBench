@@ -42,7 +42,61 @@ const App = () => {
       setBT(newBT);
     })();
   }, []);
-  // setBT([]);
+
+  let a = [];
+
+  const handleReset = () => {
+    setPeripherals([]);
+    a = [];
+  };
+
+  const addDevice = device => {
+    console.log('!addDevice', device);
+    if (!a.find(d => d.id === device.id)) {
+      a.push(device);
+    }
+    console.log(
+      '!aa',
+      a.map(d => {
+        return {id: d.id, manufacturerData: d.manufacturerData};
+      }),
+    );
+  };
+
+  let connectableDevicer = [];
+
+  const connectableDevices = async id => {
+    connectableDevicer = [];
+    await a.forEach(async x => {
+      await BT.connectToPeripheral(x.id);
+      if (x.id) {
+        connectableDevicer.push(x.id);
+      }
+      console.log('!device', BT.device);
+      if (a[a.length - 1].id === x.id) {
+        console.log('!done connecting', connectableDevicer);
+      }
+    });
+  };
+
+  // [ '7B:06:92:23:EC:86', '50:32:37:C1:A6:1D', '61:41:1E:45:5B:1A' ]
+
+  const connectToDevice = async id => {
+    await BT.connectToPeripheral(id);
+    console.log('!device', BT.device);
+  };
+
+  const getServicesAndCharacteristics = async () => {
+    console.log('!isDev', BT.device);
+    await BT.device.discoverAllServicesAndCharacteristics();
+    console.log('!s&c', BT.device);
+  };
+
+  let getDiff = (a, b) => {
+    const aDiff = a.filter(x => !b.find(y => y.id === x.id));
+    const bDiff = b.filter(x => !a.find(y => y.id === x.id));
+    return {aDiff, bDiff};
+  };
 
   return (
     <SafeAreaView style={Colors.darker}>
@@ -59,17 +113,21 @@ const App = () => {
           <Text style={styles.highlight}>{peripherals.length}</Text>
           <Button
             title="start scan"
-            onPress={() =>
-              BT.scanForPeripherals(device =>
-                scanForPeripherals(device, peripherals, setPeripherals),
-              )
-            }
+            onPress={() => BT.scanForPeripherals(device => addDevice(device))}
           />
           <Button
             title="stop scan"
             onPress={() => BT.stopScanningForPeripherals()}
           />
-          <Button title="reset state" onPress={() => setPeripherals([])} />
+          <Button
+            title="connect to device"
+            onPress={() => connectToDevice('7B:06:92:23:EC:86')}
+          />
+          <Button
+            title="get services and characteristics"
+            onPress={getServicesAndCharacteristics}
+          />
+          <Button title="reset state" onPress={handleReset} />
         </View>
         <View>
           {peripherals.map(item => (

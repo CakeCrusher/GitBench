@@ -1,13 +1,4 @@
-export const scanForPeripherals = (device, state, setState) => {
+export const scanForPeripherals = (device, addDevice) => {
   console.log('!scanForPeripherals', device);
-  if (!state.find(item => item.id === device.id)) {
-    const newState = [...state, device];
-    setState(newState);
-    console.log(
-      '!state',
-      newState.map(item => {
-        return {id: item.id, manufacturerData: item.manufacturerData};
-      }),
-    );
-  }
+  addDevice(device);
 };
