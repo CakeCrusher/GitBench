@@ -28,33 +28,6 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
-const Section = ({children, title}) => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-};
-
 const requestPermission = async () => {
   try {
     const granted = await PermissionsAndroid.request(
@@ -83,32 +56,37 @@ const requestPermission = async () => {
 
 const App = () => {
   const [count, setCount] = useState(0);
+  // const [BT, setBT] = useState(null);
+  let triggerButton = () => {
+    console.log('!button pressed');
+  };
   useEffect(() => {
     requestPermission().then(granted => {
       console.warn('!granted2', granted);
       if (granted) {
         const BT = new BleManager();
-        BT.onStateChange(state => {
-          if (state === 'PoweredOn') {
-            BT.startDeviceScan(null, null, (error, device) => {
-              console.log('deviceUnique', device);
-              if (error) {
-                console.log('errorUnique', error);
-              }
-            });
-          }
-        }, true);
+        // BT.onStateChange(state => {
+        //   if (state === 'PoweredOn') {
+        //     BT.startDeviceScan(null, null, (error, device) => {
+        //       console.log('deviceUnique', device);
+        //       if (error) {
+        //         console.log('errorUnique', error);
+        //       }
+        //       BT.stopDeviceScan();
+        //     });
+        //   }
+        // }, true);
+        BT.connectedDevices().then(devices => {
+          console.log('!devices', devices);
+        });
+        BT.stopScan();
+        triggerButton = () => {
+          console.log('!button pressed');
+        };
       }
     });
   }, [count]);
   console.warn('!!!start!!!');
-
-  const isDarkMode = useColorScheme() === 'dark';
-  console.log('isDarky', isDarkMode);
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
 
   const randomNumber = Math.floor(Math.random() * 9999);
 
@@ -123,11 +101,12 @@ const App = () => {
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
-          <Section title="Step one">
-            Edit <Text style={styles.highlight}>{randomNumber}.js</Text> to
-          </Section>
+          <Text style={styles.highlight}>{randomNumber}.js</Text> to
           <TouchableOpacity onPress={() => setCount(count + 1)}>
             <Text> COUNT {count}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={triggerButton}>
+            <Text>BUTTON</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
