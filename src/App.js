@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 
 import {Colors, Header} from 'react-native/Libraries/NewAppScreen';
+import BleManager from 'react-native-ble-manager';
+import {stringToBytes} from 'convert-string';
 
 const requestPermission = async () => {
   try {
@@ -41,19 +43,79 @@ const requestPermission = async () => {
 const App = () => {
   const randomNumber = Math.floor(Math.random() * 9999);
 
+  useEffect(() => {
+    const startBt = () => {
+      BleManager.start().then(() => {
+        console.log('!start');
+      });
+    };
+    startBt();
+  }, []);
+
+  const beginScan = async () => {
+    const res = await BleManager.scan([], 5, true);
+    console.log('!scan', res);
+  };
+  const peripheralId = '56:22:CC:22:FC:2A';
+  const serviceUuid = 'fd5f';
+  const characteristicReadUuid = '24154478-0e45-11ab-6441-e8be44459478';
+  const characteristicWriteUuid = '31087422-318b-49b0-694b-acffa57edac9';
+
+  const connect = () => {
+    BleManager.connect(peripheralId)
+      .then(() => {
+        console.log('!res success');
+
+        BleManager.retrieveServices(peripheralId).then(info => {
+          console.log('!info', info);
+        });
+      })
+      .catch(() => {
+        console.log('!res error');
+      });
+  };
+
+  const read = () => {
+    BleManager.read(peripheralId, serviceUuid, characteristicReadUuid)
+      .then(res => {
+        console.log('!read', res);
+      })
+      .catch(err => {
+        console.log('!read error', err);
+      });
+  };
+
+  const write = payload => {
+    const payloadBytes = stringToBytes(payload);
+    BleManager.write(
+      peripheralId,
+      serviceUuid,
+      characteristicWriteUuid,
+      payloadBytes,
+    )
+      .then(res => {
+        console.log('!write', res);
+      })
+      .catch(err => {
+        console.log('!write error', err);
+      });
+  };
+
   return (
     <SafeAreaView style={Colors.darker}>
       <StatusBar barStyle={'dark-content'} />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={Colors.darker}>
-        <Header />
         <View
           style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
+            backgroundColor: Colors.black,
           }}>
           <Text style={styles.highlight}>{randomNumber}</Text>
-          <Button title="press me" onPress={() => null} />
+          <Button title="scan" onPress={() => beginScan()} />
+          <Button title="connect" onPress={() => connect()} />
+          <Button title="read" onPress={() => read()} />
+          <Button title="write" onPress={() => write('hello world')} />
         </View>
       </ScrollView>
     </SafeAreaView>
